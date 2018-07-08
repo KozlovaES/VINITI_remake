@@ -1,3 +1,29 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from IPython.display import display, clear_output
+from sklearn.externals import joblib
+from gensim.models import Word2Vec
+from gensim.models.word2vec import LineSentence
+
+import time
+import datetime
+from sys import stdout# import sys
+import os
+from itertools import product
+from itertools import zip_longest
+
+from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import StratifiedKFold
+from sklearn.grid_search import GridSearchCV
+from sklearn.multiclass import OneVsRestClassifier
+
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import confusion_matrix
+
+from Codes_helper import Codes_helper
+
 class Worker():
 #     def __init__(self):
 #         self.w2v_model  = None
@@ -416,7 +442,7 @@ class Worker():
             name += '.plk'
         return name
     
-    # ‰ÓÔËÒ‡Ú¸ path_ipv_codes Ë path_replacement
+    # —Ñ—é—è—à—ë—Ä–Ñ‚Ññ path_ipv_codes —à path_replacement
     def create_sets(self, path_ipv_codes='./RJ_code_21017_utf8.txt', path_replacement='./Replacement_RJ_code_utf8.txt', split_ratio=None):  
         """
         Creates clear train and test X and y based on current train and test sets in object.

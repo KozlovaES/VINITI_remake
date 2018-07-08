@@ -1,0 +1,42 @@
+Date of creation: 8.7.2018
+Tested parameters:
+	'tol', [0.0005, 1e-06]
+	'random_state', [42]
+	'C', [0.01, 0.01, 1.0, 10.0]
+	'solver', ['liblinear']
+Best prameters:
+	'n_jobs', 1
+	'penalty', 'l2'
+	'verbose', 0
+	'tol', 1e-06
+	'fit_intercept', True
+	'random_state', 42
+	'class_weight', None
+	'solver', 'liblinear'
+	'C', 0.01
+	'dual', False
+	'multi_class', 'ovr'
+	'intercept_scaling', 1
+	'max_iter', 100
+	'warm_start', False
+Train and test data sizes and files:
+	120958	.././for_det_test/w2v_vectors_167k_sum50_v1_3_6_18.csv
+	30295	.././for_det_test/w2v_vectors_167k_sum50_v1_3_6_18.csv
+Classifier version: v1
+Classifier remarks:	lr
+Results (accuracy, precision, recall, f1-score):
+		For all answers :
+	 Macro 0.0666666666667	0.0666666666667	1.0	0.121850662026
+	 Micro 0.0666666666667	0.0666666666667	1.0	0.125
+		For 2 answers :
+	 Macro 0.919663310777	0.4260124119	0.85258750608	0.56328770844
+	 Micro 0.919663310777	0.448737415415	0.89747483083	0.598316553887
+		For 5 answers :
+	 Macro 0.730622214887	0.184191195996	0.966662727849	0.3042368679
+	 Micro 0.730622214887	0.19593332233	0.979666611652	0.326555537217
+		For 1 answers :
+	 Macro 0.968549265555	0.739072950607	0.692967146968	0.711370811236
+	 Micro 0.968549265555	0.764119491665	0.764119491665	0.764119491665
+		For 3 answers :
+	 Macro 0.859351928261	0.300251224449	0.915849624629	0.445114984618
+	 Micro 0.859351928261	0.315046487319	0.945139461957	0.472569730979
