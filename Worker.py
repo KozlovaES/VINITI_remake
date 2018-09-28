@@ -669,7 +669,9 @@ class Worker():
         if description:
             descr += '\nClassifier remarks:\t' + description
         descr += '\nResults (accuracy, precision, recall, f1-score):'
-        for i in stats.keys():
+        keys = list(stats.keys())
+        keys.sort()
+        for i in keys:
             mac = stats[i].loc['macro']
             mic = stats[i].loc['micro']
             macro = str(mac['accuracy']) + '\t' + str(mac['precision']) + '\t' + \
