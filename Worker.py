@@ -22,7 +22,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import confusion_matrix
 
-from Codes_helper import Codes_helper
+from .Codes_helper import Codes_helper
 
 class Worker():
 #     def __init__(self):
@@ -628,22 +628,30 @@ class Worker():
             for i in list(p.keys()):
                 p['estimator__'+i] = p.pop(i)
             model = OneVsRestClassifier(model)
+        gs = False
+        not_gs_parameters = {}
         for i in parameters.keys():
             if len(parameters[i]) > 1:
+                gs = True
                 gs_clf = GridSearchCV(estimator=model, 
                                param_grid=p, 
                                n_jobs=jobs, 
                                scoring=scoring, 
                                cv=skf, 
                                verbose=20)
+                gs_clf.fit(X_train, y_train)
+                best_parameters = gs_clf.best_estimator_.get_params()
                 break
-        gs_clf.fit(X_train, y_train)
+            else:
+                not_gs_parameters[i] = parameters[i][0]
+        if gs == False:
+            best_parameters = not_gs_parameters
         clf, clf_name, stats = self.create_clf(model, 
                                         X_train, 
                                         X_test, 
                                         y_train, 
                                         y_test,
-                                        parameters=gs_clf.best_estimator_.get_params(), 
+                                        parameters=best_parameters, 
                                         description=description, 
                                         version=version)
         now = datetime.datetime.today()
@@ -652,7 +660,7 @@ class Worker():
         for i in parameters.items():
             descr += '\n\t'+ str(i)[1:-1]
         descr += '\nBest prameters:'
-        for i in gs_clf.best_estimator_.get_params().items():
+        for i in best_parameters.items():
             descr += '\n\t'+ str(i)[1:-1]
         descr += '\nTrain and test data sizes and files:\n' + \
             '\t' + str(len(y_train)) + '\t' + self.name_train + '\n' + \
