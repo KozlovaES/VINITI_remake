@@ -24,32 +24,19 @@ from sklearn.metrics import confusion_matrix
 
 from .Codes_helper import Codes_helper
 
-class Worker():
-#     def __init__(self):
-#         self.w2v_model  = None
-#         self.w2v_size   = None
-#         self.lang       = None
-#         self.conv_type  = None
-#         self.rubr_id    = None
-#         self.clf        = None
-#         self.data_train = None
-#         self.data_test  = None
-#         self.name_train = None
-#         self.name_test  = None
-#         self.res_folder = None
-        
-    def init(self, 
-             w2v_model  = None, 
-             w2v_size   = None, 
-             lang       = None, 
-             conv_type  = None, 
-             rubr_id    = None, 
-             clf        = None, 
-             data_train = None, 
-             data_test  = None, 
-             name_train = None, 
-             name_test  = None, 
-             res_folder = None):
+class Worker():       
+    def __init__(self, 
+                 w2v_model  = None, 
+                 w2v_size   = None, 
+                 lang       = None, 
+                 conv_type  = None, 
+                 rubr_id    = None, 
+                 clf        = None, 
+                 data_train = None, 
+                 data_test  = None, 
+                 name_train = None, 
+                 name_test  = None, 
+                 res_folder = None):
         self.w2v_model  = w2v_model
         self.w2v_size   = w2v_size
         self.lang       = lang
@@ -159,7 +146,7 @@ class Worker():
         description (str): additional info shoul be added to file names.
         """
         if train_path and os.path.exists(train_path):
-            data = pd.read_csv(train_path, index_col=0)
+            data = pd.read_csv(train_path, index_col=0, sep='\t')
             data = self.split_all_sect(data)
             if split_ratio:
                 train_index, test_index = train_test_split(data.index.unique(), 
@@ -442,7 +429,6 @@ class Worker():
             name += '.plk'
         return name
     
-    # фюяшёрЄ№ path_ipv_codes ш path_replacement
     def create_sets(self, path_ipv_codes='./RJ_code_21017_utf8.txt', path_replacement='./Replacement_RJ_code_utf8.txt', split_ratio=None):  
         """
         Creates clear train and test X and y based on current train and test sets in object.
@@ -528,7 +514,8 @@ class Worker():
         else:
             columns = list(data.columns)
             columns.remove('text')
-            result = pd.DataFrame([], columns=[columns+list(range(self.w2v_size))])
+#             result = pd.DataFrame([], columns=[columns+list(range(self.w2v_size))])
+            result = pd.DataFrame(columns=columns+list(range(self.w2v_size)))
             total_am = data.shape[0]
             for j,i in enumerate(data.index.unique()):
                 if j%100 == 0: 
@@ -607,7 +594,7 @@ class Worker():
 # ToDo: ? Save description of the whole experiment and clf details/modify search.
 
     def search_for_clf(self, model, parameters, description=None, jobs=3, 
-                       skf_folds=2, version=1, scoring='f1_weighted', OneVsAll=False):
+                       skf_folds=3, version=1, scoring='f1_weighted', OneVsAll=False):
         """
         Searches for a best parameters combination and creates a classifier.
 
@@ -622,7 +609,7 @@ class Worker():
         X_train, X_test, y_train, y_test = self.create_sets()
         self.check_conv_type()
         self.check_lang()
-        skf = StratifiedKFold(y_train, shuffle=True, n_folds=3)
+        skf = StratifiedKFold(y_train, shuffle=True, n_folds=skf_folds)
         p = parameters.copy()
         if OneVsAll:
             for i in list(p.keys()):
@@ -674,10 +661,10 @@ class Worker():
         for i in keys:
             mac = stats[i].loc['macro']
             mic = stats[i].loc['micro']
-            macro = str(mac['accuracy']) + '\t' + str(mac['precision']) + '\t' + \
-            str(mac['recall']) + '\t' + str(mac['f1-score'])
-            micro = str(mic['accuracy']) + '\t' + str(mic['precision']) + '\t' + \
-            str(mic['recall']) + '\t' + str(mic['f1-score'])
+            macro = str(mac['accuracy'].round(3)) + '\t' + str(mac['precision'].round(3)) + '\t' + \
+            str(mac['recall'].round(3)) + '\t' + str(mac['f1-score'].round(3))
+            micro = str(mic['accuracy'].round(3)) + '\t' + str(mic['precision'].round(3)) + '\t' + \
+            str(mic['recall'].round(3)) + '\t' + str(mic['f1-score'].round(3))
             descr += '\n\t\tFor ' + str(i) + ' answers :' + '\n\t Macro ' + macro + '\n\t Micro ' + micro
             print('For '+str(i)+'\n\tmicro '+micro+'\n\tmacro'+macro+'\n')
         name = self.create_name('clf_model', descr, version=version, description=description, info=1)
@@ -756,7 +743,8 @@ class Worker():
                 else:
                     conf_matr = list(np.array(mat).ravel())[::-1]
                 stats = stats.append(pd.DataFrame([temp+conf_matr],
-                                                  columns=['accuracy', 'precision', 'recall', 'f1-score', 'TP','FP','FN','TN'], index=[i]))
+                                                  columns=['accuracy', 'precision', 'recall', 
+                                                           'f1-score', 'TP','FP','FN','TN'], index=[i]))
             stats = stats.sort_index()
             stats_mean = stats.mean().values
             tp, fp, fn, tn = stats_mean[4:]
@@ -826,7 +814,8 @@ class Worker():
                             no_miss = False
                 if no_miss:
                     for k in zip_longest(*temp):
-                        df = df.append(pd.DataFrame([list(k)+list(vect)], columns=col+list(map(str,np.arange(size+1))), index=[i]))
+                        df = df.append(pd.DataFrame([list(k)+list(vect)], 
+                                                    columns=col+list(map(str,np.arange(size+1))), index=[i]))
         print('Work time is', int(((time.time() - timer)%3600)//60), 'minutes',\
               '%.2f'%((time.time() - timer)%60), 'seconds')
         return df 
