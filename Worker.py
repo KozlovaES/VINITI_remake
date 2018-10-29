@@ -643,6 +643,10 @@ class Worker():
                                         version=version)
         now = datetime.datetime.today()
         descr = 'Date of creation: ' + str(now.day)+'.'+str(now.month)+'.'+str(now.year)
+        if '('in str(self.clf):
+            descr += '\nType of classifier:\t' + str(self.clf).split('(')[0]
+        else: 
+            descr += '\nType of classifier:\t' + str(typeof(self.clf))
         descr += '\nTested parameters:'
         for i in parameters.items():
             descr += '\n\t'+ str(i)[1:-1]
@@ -661,10 +665,10 @@ class Worker():
         for i in keys:
             mac = stats[i].loc['macro']
             mic = stats[i].loc['micro']
-            macro = str(mac['accuracy'].round(3)) + '\t' + str(mac['precision'].round(3)) + '\t' + \
-            str(mac['recall'].round(3)) + '\t' + str(mac['f1-score'].round(3))
-            micro = str(mic['accuracy'].round(3)) + '\t' + str(mic['precision'].round(3)) + '\t' + \
-            str(mic['recall'].round(3)) + '\t' + str(mic['f1-score'].round(3))
+            macro = str(mac['accuracy'].round(5)) + '\t' + str(mac['precision'].round(5)) + '\t' + \
+            str(mac['recall'].round(5)) + '\t' + str(mac['f1-score'].round(5))
+            micro = str(mic['accuracy'].round(5)) + '\t' + str(mic['precision'].round(5)) + '\t' + \
+            str(mic['recall'].round(5)) + '\t' + str(mic['f1-score'].round(5))
             descr += '\n\t\tFor ' + str(i) + ' answers :' + '\n\t Macro ' + macro + '\n\t Micro ' + micro
             print('For '+str(i)+'\n\tmicro '+micro+'\n\tmacro'+macro+'\n')
         name = self.create_name('clf_model', descr, version=version, description=description, info=1)
