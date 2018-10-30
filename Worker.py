@@ -507,31 +507,26 @@ class Worker():
         """
         self.check_conv_type()
         self.check_w2v()
-    # No need to check w2v any more
-        if self.w2v_model is None:
-            print('Word2Vec model is not set.')
-            return False
-        else:
-            columns = list(data.columns)
-            columns.remove('text')
+        columns = list(data.columns)
+        columns.remove('text')
 #             result = pd.DataFrame([], columns=[columns+list(range(self.w2v_size))])
-            result = pd.DataFrame(columns=columns+list(range(self.w2v_size)))
-            total_am = data.shape[0]
-            for j,i in enumerate(data.index.unique()):
-                if j%100 == 0: 
-                    clear_output()
-                    display(self.conv_type+' '+str(self.w2v_size))
-                    display(str(j)+'/'+str(total_am))
-                if type(data.loc[i]) != pd.core.series.Series:
-                    features = self.vectorize(data.loc[i].text.values[0])
-                    for k in data[columns].loc[i].values:
-                        inp = pd.DataFrame([list(list(k) + list(features))], 
-                                            columns = columns+list(range(self.w2v_size)), index = [i])
-                else:
-                    features = self.vectorize(data.loc[i].text)
-                    inp = pd.DataFrame([list(data.loc[i][columns]) + list(features)], 
-                                       columns = columns+list(range(self.w2v_size)), index = [i])
-                result = result.append(inp)
+        result = pd.DataFrame(columns=columns+list(range(self.w2v_size)))
+        total_am = data.shape[0]
+        for j,i in enumerate(data.index.unique()):
+            if j%100 == 0: 
+                clear_output()
+                display(self.conv_type+' '+str(self.w2v_size))
+                display(str(j)+'/'+str(total_am))
+            if type(data.loc[i]) != pd.core.series.Series:
+                features = self.vectorize(data.loc[i].text.values[0])
+                for k in data[columns].loc[i].values:
+                    inp = pd.DataFrame([list(list(k) + list(features))], 
+                                        columns = columns+list(range(self.w2v_size)), index = [i])
+            else:
+                features = self.vectorize(data.loc[i].text)
+                inp = pd.DataFrame([list(data.loc[i][columns]) + list(features)], 
+                                   columns = columns+list(range(self.w2v_size)), index = [i])
+            result = result.append(inp)
         name = self.create_name("w2v_vectors", result, description=description)
         self.save_file(name, result)
         return True
@@ -591,7 +586,6 @@ class Worker():
         name = self.create_name('clf_model', stats, version=version, description=description, info=1)
         self.save_file(name, stats)
         return clf, clf_name, stats
-# ToDo: ? Save description of the whole experiment and clf details/modify search.
 
     def search_for_clf(self, model, parameters, description=None, jobs=3, 
                        skf_folds=3, version=1, scoring='f1_weighted', OneVsAll=False):
