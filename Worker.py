@@ -606,6 +606,7 @@ class Worker():
         skf_folds   -- amount of cross-validation folds.
         version     -- int or str with version of file. 1 by default.
         """
+        timer = time.time()
         X_train, X_test, y_train, y_test = self.create_sets()
         self.check_conv_type()
         self.check_lang()
@@ -659,9 +660,13 @@ class Worker():
             '\nClassifier version: v' + str(version) 
         if description:
             descr += '\nClassifier remarks:\t' + description
+        t = str((time.time() - timer)//3600) + ' hours\t' + str(((time.time() - timer)%3600)//60) + ' minutes\t' + \
+              '%.2f'%((time.time() - timer)%60) + ' seconds'
+        descr += '\nTotal training time:\t' + t
         descr += '\nResults (accuracy, precision, recall, f1-score):'
         keys = list(stats.keys())
         keys.sort()
+        print('Work time is', t)
         for i in keys:
             mac = stats[i].loc['macro']
             mic = stats[i].loc['micro']
@@ -820,7 +825,7 @@ class Worker():
                     for k in zip_longest(*temp):
                         df = df.append(pd.DataFrame([list(k)+list(vect)], 
                                                     columns=col+list(map(str,np.arange(size+1))), index=[i]))
-        print('Work time is', int(((time.time() - timer)%3600)//60), 'minutes',\
+        print('Work time is', int((time.time() - timer)//3600), 'hours' , int(((time.time() - timer)%3600)//60), 'minutes',\
               '%.2f'%((time.time() - timer)%60), 'seconds')
         return df 
     
