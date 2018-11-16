@@ -135,41 +135,30 @@ class Worker():
             self.data_test = None
             return False
         
-    def data_cleaning(self, train_path, split_ratio=None, description=None):
+    def data_cleaning(self, description=None):
         """
         Creates one or two files with train and test data with only one rubric per string.
-        Saves the result 
-
-        Args:
-        train_path (str): absolute or relative path to train data file.
-        split_ratio (int): proportion of train data in splitting or None if no split is needed.\
-        description (str): additional info shoul be added to file names.
         """
-        if train_path and os.path.exists(train_path):
-            data = pd.read_csv(train_path, index_col=0, sep='\t')
-            data = self.split_all_sect(data)
-            if split_ratio:
-                train_index, test_index = train_test_split(data.index.unique(), 
-                                                           test_size=1-split_ratio)
-                self.data_train, self.data_test = data.loc[train_index], data.loc[test_index]
-                self.name_train, self.name_test = train_path, train_path
-                if remarks:
-                    train_name = self.create_name('data', self.data_train, description='single_theme'+'_'+description)
-                    test_name = self.create_name('data', self.data_test, description='test_single_theme'+'_'+description)
-                else:
-                    train_name = self.create_name('data', self.data_train, description='single_theme')
-                    test_name = self.create_name('data', self.data_test, description='test_single_theme')
-                self.save_file(train_name, self.data_train)
-                self.save_file(test_name, self.data_test)
+        if self.data_train is None:
+            print("Please load raw data to train or atrin and test fields in Worker object")
+            return False
+        if not (self.data_test is None):
+            self.data_test = self.split_all_sect(self.data_test)
+            if description:
+                d = 'test_single_theme'+'_'+description
             else:
-                self.data_train = data
-                name = self.create_name('data', self.data_train, description='single_theme')
-                self.save_file(name, self.data_train) 
+                d = 'test_single_theme'
+            test_name = self.create_name('data', self.data_test, description=d)
+            self.save_file(test_name, self.data_test)
+        self.data_train  = self.split_all_sect(self.data_train)
+        if description:
+            d = 'single_theme'+'_'+description
         else:
-            print('Please specify existing train data path.')
-            self.data_train = None
-            return False   
-    
+            d = 'single_theme'        
+        train_name = self.create_name('data', self.data_train, description=d)
+        self.save_file(train_name, self.data_train)
+        return True
+
     def set_res_folder(self, path):
         """
         Creates directory for saving current working files.
@@ -498,6 +487,22 @@ class Worker():
         return None, None, None, None
     
     # ToDo Description
+    def create_all_w2v_vectors(self, description=None):
+        _, name_train = self.create_w2v_vectors(self.data_train, description=description)
+        if self.data_test: 
+            if description:
+                description = 'test' + description
+            else:
+                description = 'test'
+            _, name_test = self.create_w2v_vectors(self.data_test, description=description)
+            self.load_data(name_train, name_test)
+            return True
+        else:
+            self.load_data(name_train)
+            return True
+        return False
+    
+    # ToDo Description
     def create_w2v_vectors(self, data, description=None):
         """
         Creates pd.DataFrame with vectors instead of text column.
@@ -529,7 +534,7 @@ class Worker():
             result = result.append(inp)
         name = self.create_name("w2v_vectors", result, description=description)
         self.save_file(name, result)
-        return True
+        return True, name
     
     def create_w2v_model(self, size=50, lang=None, description=None):
         """
