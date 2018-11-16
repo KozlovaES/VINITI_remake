@@ -140,7 +140,7 @@ class Worker():
         Creates one or two files with train and test data with only one rubric per string.
         """
         if self.data_train is None:
-            print("Please load raw data to train or atrin and test fields in Worker object")
+            print("Please load raw data to train or train and test fields in Worker object")
             return False
         if not (self.data_test is None):
             self.data_test = self.split_all_sect(self.data_test)
@@ -150,6 +150,7 @@ class Worker():
                 d = 'test_single_theme'
             test_name = self.create_name('data', self.data_test, description=d)
             self.save_file(test_name, self.data_test)
+            self.name_test  = test_name            
         self.data_train  = self.split_all_sect(self.data_train)
         if description:
             d = 'single_theme'+'_'+description
@@ -157,6 +158,7 @@ class Worker():
             d = 'single_theme'        
         train_name = self.create_name('data', self.data_train, description=d)
         self.save_file(train_name, self.data_train)
+        self.name_train = train_name
         return True
 
     def set_res_folder(self, path):
