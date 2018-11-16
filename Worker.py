@@ -341,6 +341,14 @@ class Worker():
         info        -- if file contains additional information or not (bool).
         """
         self.check_res_folder()
+        if self.data_test is not None:
+            test_amount = self.data_test.index.drop_duplicates().shape[0]/1000
+        else:
+            test_amount = '-'
+        if self.data_train is not None:
+            train_amount = self.data_train.index.drop_duplicates().shape[0]/1000
+        else:
+            train_amount = '-'
         if description:
             description = str(description)
         name = self.res_folder + '/'
@@ -351,10 +359,9 @@ class Worker():
         if file_type == 'w2v_model':
             name += '_'+str(self.w2v_size)
             name += '_'+self.lang
-            name += '_'+str(round((self.data_train.shape[0]+self.data_test.shape[0])/1000))+'k'
+            name += '_'+str(round(test_amount+train_amount))+'k'
             if description:
                 name += '_'+description
-            
         elif file_type == 'clf_model':
             name += '_'+self.lang
             name += '_'+self.rubr_id
@@ -367,19 +374,19 @@ class Worker():
             if description:
                 name += '_'+description
             if 'test' in description:
-                name += '_'+str(round(self.data_test.shape[0]/1000))+'k'
+                name += '_'+str(round(test_amount))+'k'
             else:
-                name += '_'+str(round(self.data_train.shape[0]/1000))+'k'
+                name += '_'+str(round(train_amount))+'k'
             
         elif file_type == 'w2v_vectors':
             if description is None:
-                name += '_'+str(round(self.data_train.shape[0]/1000))+'k'
+                name += '_'+str(round(train_amount))+'k'
             else:
                 name += '_'+description
                 if 'test' in description:
-                    name += '_'+str(round(self.data_test.shape[0]/1000))+'k'
+                    name += '_'+str(round(test_amount))+'k'
                 else:
-                    name += '_'+str(round(self.data_train.shape[0]/1000))+'k'
+                    name += '_'+str(round(train_amount))+'k'
             name += '_'+self.conv_type
             name += str(self.w2v_size)
         
@@ -389,9 +396,9 @@ class Worker():
             name += '_'+self.conv_type
             name += str(self.w2v_size) 
             if 'test' in description:
-                name += '_'+str(round(self.data_test.shape[0]/1000))+'k'
+                name += '_'+str(round(test_amount))+'k'
             else:
-                name += '_'+str(round(self.data_train.shape[0]/1000))+'k'
+                name += '_'+str(round(train_amount))+'k'
             
         elif file_type == 'result':
             name += '_'+self.rubr_id
@@ -399,9 +406,9 @@ class Worker():
             name += '_'+self.conv_type
             name += str(self.w2v_size)
             if description and 'test' in description:
-                name += '_'+str(round(self.data_test.shape[0]/1000))+'k'
+                name += '_'+str(round(test_amount))+'k'
             else:
-                name += '_'+str(round(self.data_train.shape[0]/1000))+'k'
+                name += '_'+str(round(train_amount))+'k'
         
         name += '_v'+str(version)
         now = datetime.datetime.today()
