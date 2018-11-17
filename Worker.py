@@ -496,34 +496,39 @@ class Worker():
         return None, None, None, None
     
     # ToDo Description
-    def create_all_w2v_vectors(self, description=None):
-        _, name_train = self.create_w2v_vectors(self.data_train, description=description)
-        if self.data_test: 
-            if description:
-                description = 'test' + description
-            else:
-                description = 'test'
-            _, name_test = self.create_w2v_vectors(self.data_test, description=description)
-            self.load_data(name_train, name_test)
-            return True
-        else:
-            self.load_data(name_train)
-            return True
-        return False
+    def create_w2v_vectors(self, description=None):
+        if self.data_train is None:
+            print('Please load splitted data to train or train and test fields in Worker object')
+            return False
+        flag_train, name_train = self.__create_w2v_vectors_on_one_set('train', description=description)
+        if self.data_test is not None: 
+            flag_test, name_test = self.__create_w2v_vectors_on_one_set('test', description=description)
+            return flag_test
+        return flag_train
     
     # ToDo Description
-    def create_w2v_vectors(self, data, description=None):
+    def __create_w2v_vectors_on_one_set(self, data_t='train', description=None):
         """
         Creates pd.DataFrame with vectors instead of text column.
 
         Args:
-        data (pd.DataFrame): .
+        data_t (str): 'test' or 'train'. Data is taken from self.data_x.
         """
         self.check_conv_type()
         self.check_w2v()
+        if data_t == 'train':
+            data = self.data_train
+        elif data_t == 'test':
+            data = self.data_test
+            if description is not None:
+                description = 'test'+'_'+description
+            else:
+                description = 'test'
+        else:
+            print('data_t can be only "train" or "test".')
+            return False, '-'
         columns = list(data.columns)
         columns.remove('text')
-#             result = pd.DataFrame([], columns=[columns+list(range(self.w2v_size))])
         result = pd.DataFrame(columns=columns+list(range(self.w2v_size)))
         total_am = data.shape[0]
         for j,i in enumerate(data.index.unique()):
@@ -543,6 +548,12 @@ class Worker():
             result = result.append(inp)
         name = self.create_name("w2v_vectors", result, description=description)
         self.save_file(name, result)
+        if data_t == 'train':
+            self.data_train = result
+            self.name_train = name
+        elif data_t == 'test':
+            self.data_test = result
+            self.name_test = name       
         return True, name
     
     def create_w2v_model(self, size=50, lang=None, description=None):
