@@ -143,21 +143,21 @@ class Worker():
             print("Please load raw data to train or train and test fields in Worker object")
             return False
         if not (self.data_test is None):
-            self.data_test = self.split_all_sect(self.data_test)
+            self.data_test = self.__split_all_sect(self.data_test)
             if description:
                 d = 'test_single_theme'+'_'+description
             else:
                 d = 'test_single_theme'
-            test_name = self.create_name('data', self.data_test, description=d)
-            self.save_file(test_name, self.data_test)
+            test_name = self.__create_name('data', self.data_test, description=d)
+            self.__save_file(test_name, self.data_test)
             self.name_test  = test_name            
-        self.data_train  = self.split_all_sect(self.data_train)
+        self.data_train  = self.__split_all_sect(self.data_train)
         if description:
             d = 'single_theme'+'_'+description
         else:
             d = 'single_theme'        
-        train_name = self.create_name('data', self.data_train, description=d)
-        self.save_file(train_name, self.data_train)
+        train_name = self.__create_name('data', self.data_train, description=d)
+        self.__save_file(train_name, self.data_train)
         self.name_train = train_name
         return True
 
@@ -246,7 +246,7 @@ class Worker():
             print('Not a valid language. Please choose "en" or "ru".')
             return False
     ################################################
-    def check_res_folder(self):
+    def __check_res_folder(self):
         """
         Checkes if result folder is set. 
         If it is not, function asks a new path and checks if it is correct.
@@ -260,7 +260,7 @@ class Worker():
                 print('Not a valid path, try again.')
         return True
            
-    def check_rubr_id(self):
+    def __check_rubr_id(self):
         """
         Checkes if rubric is set. 
         If it is not, function asks a new rubric and checks if it is correct.
@@ -271,7 +271,7 @@ class Worker():
             self.set_rubr_id(rubric)
         return True
 
-    def check_conv_type(self):
+    def __check_conv_type(self):
         """
         Checkes if convolution type is set. 
         If it is not, function asks a new convolution type and checks if it is correct.
@@ -282,7 +282,7 @@ class Worker():
             self.set_conv_type(conv_type)
         return True
     
-    def check_clf(self):
+    def __check_clf(self):
         """
         Checkes if classifier is set. 
         If it is not, function asks a new classifier path and checks if it is correct.
@@ -292,7 +292,7 @@ class Worker():
             file = input()
             self.set_clf(file)
         
-    def check_w2v(self):
+    def __check_w2v(self):
         """
         Checkes if word2vec model is set. 
         If it is not, function asks a new word2vec path and checks if it is correct.
@@ -303,13 +303,13 @@ class Worker():
             self.set_w2v(file)
     ####################################################
     
-    def check_lang(self):
+    def __check_lang(self):
         while not self.lang:
             print('Please specify language:')
             lang = input()
             self.set_lang(lang)
     
-    def check_data(self):
+    def __check_data(self):
         while self.data_train is None:
             file_train = '---'
             while not os.path.exists(file_train):
@@ -327,7 +327,7 @@ class Worker():
             self.load_data(train_path=file_train, test_path=file_test, split_ratio=split)
     ####################################################
     
-    def create_name(self, file_type, save_data, version=1, description=None, info=None):
+    def __create_name(self, file_type, save_data, version=1, description=None, info=None):
         """
         Creates saving name for file in result_folder. Always add "test" in description 
             for use it's features in name. By default train dataset is used.
@@ -340,7 +340,7 @@ class Worker():
         description (str): additional data that should be in file name.
         info        -- if file contains additional information or not (bool).
         """
-        self.check_res_folder()
+        self.__check_res_folder()
         if self.data_test is not None:
             test_amount = self.data_test.index.drop_duplicates().shape[0]/1000
         else:
@@ -435,7 +435,7 @@ class Worker():
         Args:
         split_ratio (int): needed if there ae no test data specified in self.data_test.
         """
-        self.check_rubr_id()
+        self.__check_rubr_id()
         helper = Codes_helper()
         if self.rubr_id == 'ipv':
             helper.set_ipv_codes(path_ipv_codes)
@@ -490,7 +490,7 @@ class Worker():
                 y_test  = Codes_helper().cut_rgnti(self.data_test.rgnti)
             X_train = self.data_train[list(map(str,np.arange(size+1)))]
             X_test  = self.data_test[list(map(str,np.arange(size+1)))]
-            X_test, y_test = self.change_test(X_test, y_test)
+            X_test, y_test = self.__change_test(X_test, y_test)
             y_train = list(y_train)
             return X_train, X_test, y_train, y_test
         return None, None, None, None
@@ -514,8 +514,8 @@ class Worker():
         Args:
         data_t (str): 'test' or 'train'. Data is taken from self.data_x.
         """
-        self.check_conv_type()
-        self.check_w2v()
+        self.__check_conv_type()
+        self.__check_w2v()
         if data_t == 'train':
             data = self.data_train
         elif data_t == 'test':
@@ -537,17 +537,17 @@ class Worker():
                 display(self.conv_type+' '+str(self.w2v_size))
                 display(str(j)+'/'+str(total_am))
             if type(data.loc[i]) != pd.core.series.Series:
-                features = self.vectorize(data.loc[i].text.values[0])
+                features = self.__vectorize(data.loc[i].text.values[0])
                 for k in data[columns].loc[i].values:
                     inp = pd.DataFrame([list(list(k) + list(features))], 
                                         columns = columns+list(range(self.w2v_size)), index = [i])
             else:
-                features = self.vectorize(data.loc[i].text)
+                features = self.__vectorize(data.loc[i].text)
                 inp = pd.DataFrame([list(data.loc[i][columns]) + list(features)], 
                                    columns = columns+list(range(self.w2v_size)), index = [i])
             result = result.append(inp)
-        name = self.create_name("w2v_vectors", result, description=description)
-        self.save_file(name, result)
+        name = self.__create_name("w2v_vectors", result, description=description)
+        self.__save_file(name, result)
         if data_t == 'train':
             self.data_train = result
             self.name_train = name
@@ -563,7 +563,7 @@ class Worker():
         Args:
         size(int): w2v vectors dimension size.
         """
-        self.check_lang()
+        self.__check_lang()
         if 'text' in list(self.data_train.columns):
             self.w2v_size = size
             if lang:
@@ -574,8 +574,8 @@ class Worker():
                          window=4, min_count=3, workers=3)
             os.remove('./only_text.csv')
             self.w2v_model = model
-            name = self.create_name("w2v_model", model, description=description)
-            self.save_file(name, model)
+            name = self.__create_name("w2v_model", model, description=description)
+            self.__save_file(name, model)
             return True
         else:
             print('Train DataFrame does not contain "text" column.')
@@ -600,16 +600,16 @@ class Worker():
         if parameters is not None:
             clf.set_params(**parameters)
         clf.fit(X_train, y_train)
-        clf_name = self.create_name('clf_model', clf, version=version, description=description)
-        self.save_file(clf_name, clf)
+        clf_name = self.__create_name('clf_model', clf, version=version, description=description)
+        self.__save_file(clf_name, clf)
         self.clf = clf
         pred = []
         for j in clf.predict_proba(X_test):
             all_prob = pd.Series(j, index=clf.classes_)
             pred.append(list(all_prob.sort_values(ascending=False).index))
         stats = self.count_stats(pred, y_test, amounts=[1,2,3,5,-1])
-        name = self.create_name('clf_model', stats, version=version, description=description, info=1)
-        self.save_file(name, stats)
+        name = self.__create_name('clf_model', stats, version=version, description=description, info=1)
+        self.__save_file(name, stats)
         return clf, clf_name, stats
 
     def search_for_clf(self, model, parameters, description=None, jobs=3, 
@@ -627,8 +627,8 @@ class Worker():
         """
         timer = time.time()
         X_train, X_test, y_train, y_test = self.create_sets()
-        self.check_conv_type()
-        self.check_lang()
+        self.__check_conv_type()
+        self.__check_lang()
         skf = StratifiedKFold(y_train, shuffle=True, n_folds=skf_folds)
         p = parameters.copy()
         if OneVsAll:
@@ -695,10 +695,10 @@ class Worker():
             str(mic['recall'].round(5)) + '\t' + str(mic['f1-score'].round(5))
             descr += '\n\t\tFor ' + str(i) + ' answers :' + '\n\t Macro ' + macro + '\n\t Micro ' + micro
             print('For '+str(i)+'\n\tmicro '+micro+'\n\tmacro'+macro+'\n')
-        name = self.create_name('clf_model', descr, version=version, description=description, info=1)
-        self.save_file(name, descr)
+        name = self.__create_name('clf_model', descr, version=version, description=description, info=1)
+        self.__save_file(name, descr)
 
-    def make_res_b(self, predicts, y_test):
+    def __make_res_b(self, predicts, y_test):
         """
         Counts binary acccuracy, precision, recall and f1.
 
@@ -763,7 +763,7 @@ class Worker():
                     else:
                         cur_y_test += [0]
                 temp = []
-                for l in self.make_res_b(cur_predicts, cur_y_test):
+                for l in self.__make_res_b(cur_predicts, cur_y_test):
                     temp += [l]
                 mat = confusion_matrix(cur_predicts, cur_y_test)
                 if (mat.shape == (1, 1)):
@@ -794,7 +794,7 @@ class Worker():
         full_stats = dict(zip(keys, values))
         return full_stats
     
-    def split_all_sect(self, data):
+    def __split_all_sect(self, data):
         """
         Splits all rubrics separated with / to different strings.
 
@@ -848,7 +848,7 @@ class Worker():
               '%.2f'%((time.time() - timer)%60), 'seconds')
         return df 
     
-    def change_test(self, X_test, y_test):
+    def __change_test(self, X_test, y_test):
         """
         Changes test set to make it possible to deal with several answers to one text.
 
@@ -869,11 +869,14 @@ class Worker():
     
     ########################################################
     # ToDo: write, test, description
+    """
+    Unfinished!
+    """
     def test_with_new_data(self, data_path):
-        self.check_res_folder()
-        self.check_clf()
-        self.check_w2v()
-        self.check_rubr_id()
+        self.__check_res_folder()
+        self.__check_clf()
+        self.__check_w2v()
+        self.__check_rubr_id()
         if os.path.exists(data_path):
             self.data_train = pd.read_csv(data_path, index_col=0)
             self.data_train = self.w2v_vectors_creation(self.data_train)
@@ -884,8 +887,8 @@ class Worker():
                 all_prob = pd.Series(j, index=self.clf.classes_)
                 pred.append(list(all_prob.sort_values(ascending=False).index))
             stats = self.count_stats(pred, y_test, amounts=[1,2,3,5,-1])
-            name = self.create_name('result', stats, description='test', info=1)
-            self.save_file(name, stats)
+            name = self.__create_name('result', stats, description='test', info=1)
+            self.__save_file(name, stats)
             for i in stats.keys():
                 mac = stats[i].loc['macro']
                 mic = stats[i].loc['micro']
@@ -904,15 +907,15 @@ class Worker():
             answers.append(temp[:-1])
             pred = pd.DataFrame(list(zip([self.rubr_id]*len(answers), answers, 
                              ['###']*len(answers))), columns=['rubric id','result', 'correct'], index=X_train.index)
-            name = self.create_name('answers', pred, description='test', info=1)
-            self.save_file(name, pred)
+            name = self.__create_name('answers', pred, description='test', info=1)
+            self.__save_file(name, pred)
         else:
             print('Please specify existing test data path.')
             return False
         
     ########################################################
     
-    def save_file(self, name, save_data):
+    def __save_file(self, name, save_data):
         """
         Saves the data with the given file name.
 
@@ -945,14 +948,14 @@ class Worker():
             return False
     
     # check_w2v_model()
-    def vectorize(self, text): 
+    def __vectorize(self, text): 
         """
         Transforms one text into vector.
 
         Args:
         text (str): string with text taht should be transformed.
         """
-        self.check_conv_type()
+        self.__check_conv_type()
         if self.w2v_model:
             tokens = text.split()
             features = [0]*self.w2v_size
