@@ -373,6 +373,8 @@ class Worker():
         elif file_type == 'data':
             if description:
                 name += '_'+description
+            if self.lang is not None:
+                name += '_'+self.lang                
             if 'test' in description:
                 name += '_'+str(round(test_amount))+'k'
             else:
@@ -530,7 +532,7 @@ class Worker():
         columns = list(data.columns)
         columns.remove('text')
         result = pd.DataFrame(columns=columns+list(range(self.w2v_size)))
-        total_am = data.shape[0]
+        total_am = data.index.drop_duplicates().shape[0]
         for j,i in enumerate(data.index.unique()):
             if j%100 == 0: 
                 clear_output()
