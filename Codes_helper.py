@@ -3,11 +3,17 @@ import pandas as pd
 
 
 class Codes_helper:
-    def __init__(self, ipv_name=None, ipv_change=None):
+    def __init__(self, ipv_name=None, ipv_change=None, clear_math=True):
         self.set_ipv_codes(ipv_name)
         self.set_ipv_change(ipv_change)
-        self.subj_codes = ['e1', 'e2', 'e3', 'e4', 'e5', 'e7', 'e9',
-                           'f1', 'f2', 'f3', 'f4', 'f5', 'f7', 'f8', 'f9'] 
+        self.clear_math = clear_math
+        if clear_math:
+            print('!!! Math')
+            self.subj_codes = ['e1', 'e2', 'e3', 'e4', 'e5', 'e7', 'e9',
+                               'f1', 'f2', 'f3', 'f4', 'f5', 'f7', 'f8', 'f9']
+        else:
+            self.subj_codes = ['e1', 'e2', 'e3', 'e4', 'e5', 'e7', 'e8', 'e9',
+                               'f1', 'f2', 'f3', 'f4', 'f5', 'f7', 'f8', 'f9']
     
     def clear_null(self, data, column_name):
         data.index.name = 'index'
@@ -25,11 +31,12 @@ class Codes_helper:
         """
         if ipv_name and os.path.exists(ipv_name):
             self.ipv_codes = list(pd.read_csv(ipv_name, sep='\t', header=None)[0])
-            math = []
-            for i in self.ipv_codes:
-                if i.startswith('13'):
-                    math += [i]
-            self.ipv_codes = list(set(self.ipv_codes)-set(math))
+            if self.clear_math:
+                math = []
+                for i in self.ipv_codes:
+                    if i.startswith('13'):
+                        math += [i]
+                self.ipv_codes = list(set(self.ipv_codes)-set(math))
         else:
             self.ipv_codes = None
 
@@ -49,7 +56,7 @@ class Codes_helper:
         #############################
 #         ToDo Test
     
-    def change_ipv(self, data, clear_math=True):
+    def change_ipv(self, data):
         """
         Changes ipv column in pd.dataFrame according to ipv_change.
 
@@ -61,7 +68,8 @@ class Codes_helper:
         for i in self.ipv_change.index:
             temp = list(self.ipv_change.loc[i])
             data.ipv[data.ipv == temp[0]] = temp[1]
-        if clear_math:
+        codes = list(set(self.ipv_codes))
+        if self.clear_math:
             math = []
             for i in self.ipv_codes:
                 if i.startswith('13'):

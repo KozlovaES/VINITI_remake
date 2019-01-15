@@ -35,7 +35,8 @@ class Worker():
                  data_test  = None, 
                  name_train = None, 
                  name_test  = None, 
-                 res_folder = None):
+                 res_folder = None,
+                 clear_math=True):
         self.w2v_model  = w2v_model
         self.w2v_size   = w2v_size
         self.lang       = lang
@@ -47,6 +48,7 @@ class Worker():
         self.name_train = name_train
         self.name_test  = name_test
         self.res_folder = res_folder
+        self.clear_math = clear_math
         
     def load_w2v(self, w2v_path):
         """
@@ -92,7 +94,7 @@ class Worker():
         else:
             return False
     
-    def load_data(self, train_path, test_path=None, split_ratio=0.8):
+    def load_data(self, train_path, test_path=None, split_ratio=0.8, sep='\t'):
         """
         Loads test and train data. If test_path is equal to None then train set will be splitted into two parts 
         according to split_ratio. 
@@ -111,13 +113,13 @@ class Worker():
             self.name_train = train_path
             if test_path and os.path.exists(test_path):
                 self.name_test = test_path
-                self.data_train = pd.read_csv(train_path, index_col=0, sep='\t')
-                self.data_test = pd.read_csv(test_path, index_col=0, sep='\t')
+                self.data_train = pd.read_csv(train_path, index_col=0, sep=sep)
+                self.data_test = pd.read_csv(test_path, index_col=0, sep=sep)
             else:
                 if test_path:
                     print('Test path is not valid, train set will be splitted.')
                 self.name_test = train_path
-                data = pd.read_csv(train_path, index_col=0, sep='\t')
+                data = pd.read_csv(train_path, index_col=0, sep=sep)
                 train_index, test_index = train_test_split(data.index.unique(), 
                                                            test_size=1-split_ratio)
                 self.data_train, self.data_test = data.loc[train_index], data.loc[test_index]
@@ -244,6 +246,9 @@ class Worker():
         else:
             print('Not a valid language. Please choose "en" or "ru".')
             return False
+
+    def set_math(self, math:bool):
+        self.math = math
     ################################################
 
     def __check_res_folder(self):
@@ -442,7 +447,7 @@ class Worker():
         split_ratio (int): needed if there ae no test data specified in self.data_test.
         """
         self.__check_rubr_id()
-        helper = Codes_helper()
+        helper = Codes_helper(clear_math=not(self.math))
         if self.rubr_id == 'ipv':
             helper.set_ipv_codes(path_ipv_codes)
             helper.set_ipv_change(path_replacement)
@@ -730,7 +735,7 @@ class Worker():
         """
         if legend is None:
             if self.rubr_id == 'subj':
-                legend = Codes_helper().get_codes('subj')
+                legend = Codes_helper(clear_math=not(self.math)).get_codes('subj')
             else:
                 legend = [item for sublist in y_test for item in sublist]
                 legend = pd.Series(map(str, legend))
