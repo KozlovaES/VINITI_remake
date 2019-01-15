@@ -1,9 +1,9 @@
 import os
 import pandas as pd
 
+
 class Codes_helper:
-    
-    def __init__(self, ipv_name = None, ipv_change = None):
+    def __init__(self, ipv_name=None, ipv_change=None):
         self.set_ipv_codes(ipv_name)
         self.set_ipv_change(ipv_change)
         self.subj_codes = ['e1', 'e2', 'e3', 'e4', 'e5', 'e7', 'e9',
@@ -32,8 +32,7 @@ class Codes_helper:
             self.ipv_codes = list(set(self.ipv_codes)-set(math))
         else:
             self.ipv_codes = None
-    
-    
+
     def set_ipv_change(self, ipv_change):
         """
         Loads ipv changes file if path is valid.
@@ -50,22 +49,24 @@ class Codes_helper:
         #############################
 #         ToDo Test
     
-    def change_ipv(self, data):
+    def change_ipv(self, data, clear_math=True):
         """
         Changes ipv column in pd.dataFrame according to ipv_change.
 
         Args:
         data          -- pd.DataFrame with ipv column.
+        clear_math    -- bollean parameter. If True math SRSTI (13) will be cleared.
         """
         data = self.clear_null(data, 'ipv')
         for i in self.ipv_change.index:
             temp = list(self.ipv_change.loc[i])
             data.ipv[data.ipv == temp[0]] = temp[1]
-        math = []
-        for i in self.ipv_codes:
-            if i.startswith('13'):
-                math += [i]
-        codes = list(set(self.ipv_codes)-set(math))
+        if clear_math:
+            math = []
+            for i in self.ipv_codes:
+                if i.startswith('13'):
+                    math += [i]
+            codes = list(set(self.ipv_codes)-set(math))
         for i in list(set(list(data.ipv.unique()))-set(codes)):
             data = data.drop(data[data.ipv == i].index, axis=0)
         return data
@@ -103,8 +104,7 @@ class Codes_helper:
             print('Name must be SUBJ or IPV')
             return None
         return s
-    
-    
+
     def cut_rgnti(self, data):
         """
         Transforms rgnti cide into xx.xx format.

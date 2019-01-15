@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 from IPython.display import display, clear_output
 from sklearn.externals import joblib
@@ -9,9 +8,7 @@ from gensim.models.word2vec import LineSentence
 
 import time
 import datetime
-from sys import stdout# import sys
 import os
-from itertools import product
 from itertools import zip_longest
 
 from sklearn.cross_validation import train_test_split
@@ -22,8 +19,9 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import confusion_matrix
 
-from Codes_helper import Codes_helper
-# from .Codes_helper import Codes_helper
+# from Codes_helper import Codes_helper
+from .Codes_helper import Codes_helper
+
 
 class Worker():       
     def __init__(self, 
@@ -83,11 +81,11 @@ class Worker():
                 self.conv_type = 'max'
             elif '_mean' in clf_path:
                 self.conv_type = 'mean'
-            if     'ipv'   in  clf_path:
+            if   'ipv'   in  clf_path:
                 self.rubr_id = 'ipv'
-            elif   'subj'  in  clf_path:
+            elif 'subj'  in  clf_path:
                 self.rubr_id = 'subj'
-            elif   'rgnti' in  clf_path:
+            elif 'rgnti' in  clf_path:
                 self.rubr_id = 'rgnti'
             self.clf = joblib.load(clf_path)
             return True
@@ -151,8 +149,8 @@ class Worker():
                 d = 'test_single_theme'
             test_name = self.__create_name('data', self.data_test, description=d)
             self.__save_file(test_name, self.data_test)
-            self.name_test  = test_name            
-        self.data_train  = self.__split_all_sect(self.data_train)
+            self.name_test = test_name
+        self.data_train = self.__split_all_sect(self.data_train)
         if description:
             d = 'single_theme'+'_'+description
         else:
@@ -247,6 +245,7 @@ class Worker():
             print('Not a valid language. Please choose "en" or "ru".')
             return False
     ################################################
+
     def __check_res_folder(self):
         """
         Checkes if result folder is set. 
@@ -309,14 +308,15 @@ class Worker():
             print('Please specify language:')
             lang = input()
             self.set_lang(lang)
-    
+
+    # ??? WTF тут происходит
     def __check_data(self):
         while self.data_train is None:
-            file_train = '---'
+            self.name_train = None
             while not os.path.exists(file_train):
                 print('Please specify path to train data file:')
                 file_train = input()
-            file_test = '---'
+            self.name_test = None
             while file_test and not os.path.exists(file_test):
                 print('Please specify path to test data file (leave empty if no such file):')
                 file_test = input()
@@ -324,7 +324,7 @@ class Worker():
                 if not file_test:
                     file_test = None
                     print('Please specify split fraction(leave empty if no split):')
-                    split = float(input().replace(',','.'))
+                    split = float(input().replace(',', '.'))
             self.load_data(train_path=file_train, test_path=file_test, split_ratio=split)
     ####################################################
     
@@ -430,7 +430,10 @@ class Worker():
             name += '.plk'
         return name
     
-    def create_sets(self, path_ipv_codes='./RJ_code_21017_utf8.txt', path_replacement='./Replacement_RJ_code_utf8.txt', split_ratio=None):  
+    def create_sets(self,
+                    path_ipv_codes='./RJ_code_21017_utf8.txt',
+                    path_replacement='./Replacement_RJ_code_utf8.txt',
+                    split_ratio=None):
         """
         Creates clear train and test X and y based on current train and test sets in object.
         Needs right names of chosen rubric column according to format ("subj", "ipv", "rgnti").
@@ -468,8 +471,8 @@ class Worker():
                 print('Please set train data.')
             elif self.data_test is None:
                 train_index, test_index = train_test_split(self.data_train.index.unique(),
-                                                   random_state=42, 
-                                                   test_size=1-split_ratio)
+                                                           random_state=42,
+                                                           test_size=1-split_ratio)
                 self.data_test = self.data_train.loc[test_index]
                 self.data_train = self.data_train.loc[train_index]
         cols = np.array(self.data_train.columns)
@@ -478,7 +481,6 @@ class Worker():
             if str(i).isdigit():
                 if int(i) > size:
                     size = int(i)
-       #  size = np.array(list(map(int, cols[list(map(str.isdigit, str(cols)))])))
         if size == 0:
             print("No features columns are found.")
         elif size > 0:
@@ -491,8 +493,8 @@ class Worker():
             elif self.rubr_id == 'rgnti':
                 y_train = Codes_helper().cut_rgnti(self.data_train.rgnti)
                 y_test  = Codes_helper().cut_rgnti(self.data_test.rgnti)
-            X_train = self.data_train[list(map(str,np.arange(size+1)))]
-            X_test  = self.data_test[list(map(str,np.arange(size+1)))]
+            X_train = self.data_train[list(map(str, np.arange(size+1)))]
+            X_test  = self.data_test[list(map(str, np.arange(size+1)))]
             X_test, y_test = self.__change_test(X_test, y_test)
             y_train = list(y_train)
             return X_train, X_test, y_train, y_test
@@ -543,11 +545,11 @@ class Worker():
                 features = self.__vectorize(data.loc[i].text.values[0])
                 for k in data[columns].loc[i].values:
                     inp = pd.DataFrame([list(list(k) + list(features))], 
-                                        columns = columns+list(range(self.w2v_size)), index = [i])
+                                        columns=columns+list(range(self.w2v_size)), index = [i])
             else:
                 features = self.__vectorize(data.loc[i].text)
                 inp = pd.DataFrame([list(data.loc[i][columns]) + list(features)], 
-                                   columns = columns+list(range(self.w2v_size)), index = [i])
+                                   columns=columns+list(range(self.w2v_size)), index = [i])
             result = result.append(inp)
         name = self.__create_name("w2v_vectors", result, description=description)
         self.__save_file(name, result)
@@ -573,8 +575,7 @@ class Worker():
                 self.lang = lang
             df = pd.concat([self.data_train, self.data_test], ignore_index=True)
             df.text.to_csv('./only_text.csv', index=False, encoding='utf-8')
-            model = Word2Vec(LineSentence('./only_text.csv'), size=size, 
-                         window=4, min_count=3, workers=3)
+            model = Word2Vec(LineSentence('./only_text.csv'), size=size, window=4, min_count=3, workers=3)
             os.remove('./only_text.csv')
             self.w2v_model = model
             name = self.__create_name("w2v_model", model, description=description)
@@ -610,13 +611,13 @@ class Worker():
         for j in clf.predict_proba(X_test):
             all_prob = pd.Series(j, index=clf.classes_)
             pred.append(list(all_prob.sort_values(ascending=False).index))
-        stats = self.count_stats(pred, y_test, amounts=[1,2,3,5,-1])
+        stats = self.count_stats(pred, y_test, amounts=[1, 2, 3, 5, -1])
         name = self.__create_name('clf_model', stats, version=version, description=description, info=1)
         self.__save_file(name, stats)
         return clf, clf_name, stats
 
     def search_for_clf(self, model, parameters, description=None, jobs=3, 
-                       skf_folds=3, version=1, scoring='f1_weighted', OneVsAll=False):
+                       skf_folds=3, version=1, scoring='f1_weighted', oneVsAll=False):
         """
         Searches for a best parameters combination and creates a classifier.
 
@@ -634,7 +635,7 @@ class Worker():
         self.__check_lang()
         skf = StratifiedKFold(y_train, shuffle=True, n_folds=skf_folds)
         p = parameters.copy()
-        if OneVsAll:
+        if oneVsAll:
             for i in list(p.keys()):
                 p['estimator__'+i] = p.pop(i)
             model = OneVsRestClassifier(model)
@@ -643,12 +644,12 @@ class Worker():
         for i in parameters.keys():
             if len(parameters[i]) > 1:
                 gs = True
-                gs_clf = GridSearchCV(estimator=model, 
-                               param_grid=p, 
-                               n_jobs=jobs, 
-                               scoring=scoring, 
-                               cv=skf, 
-                               verbose=20)
+                gs_clf = GridSearchCV(estimator=model,
+                                      param_grid=p,
+                                      n_jobs=jobs,
+                                      scoring=scoring,
+                                      cv=skf,
+                                      verbose=20)
                 gs_clf.fit(X_train, y_train)
                 best_parameters = gs_clf.best_estimator_.get_params()
                 break
@@ -672,18 +673,19 @@ class Worker():
             descr += '\nType of classifier:\t' + str(typeof(self.clf))
         descr += '\nTested parameters:'
         for i in parameters.items():
-            descr += '\n\t'+ str(i)[1:-1]
+            descr += '\n\t' + str(i)[1:-1]
         descr += '\nBest prameters:'
         for i in best_parameters.items():
-            descr += '\n\t'+ str(i)[1:-1]
+            descr += '\n\t' + str(i)[1:-1]
         descr += '\nTrain and test data sizes and files:\n' + \
             '\t' + str(len(y_train)) + '\t' + self.name_train + '\n' + \
             '\t' + str(len(y_test)) + '\t' + self.name_test + \
             '\nClassifier version: v' + str(version) 
         if description:
             descr += '\nClassifier remarks:\t' + description
-        t = str((time.time() - timer)//3600) + ' hours\t' + str(((time.time() - timer)%3600)//60) + ' minutes\t' + \
-              '%.2f'%((time.time() - timer)%60) + ' seconds'
+        t = str((time.time() - timer) // 3600) + ' hours\t' +\
+            str(((time.time() - timer) % 3600) // 60) + ' minutes\t' +\
+            '%.2f'%((time.time() - timer) % 60) + ' seconds'
         descr += '\nTotal training time:\t' + t
         descr += '\nResults (accuracy, precision, recall, f1-score):'
         keys = list(stats.keys())
@@ -703,7 +705,7 @@ class Worker():
 
     def __make_res_b(self, predicts, y_test):
         """
-        Counts binary acccuracy, precision, recall and f1.
+        Counts binary accuracy, precision, recall and f1.
 
         Args:
         predicts    -- classifiers answers for X_test (0 and 1 for a particular rubric).
@@ -715,7 +717,7 @@ class Worker():
         f1 = f1_score(y_test, predicts)
         return [ac, pr, rec, f1]
 
-    def count_stats(self, predicts, y_test, legend=None, amounts=[1], version=1):
+    def count_stats(self, predicts, y_test, legend=None, amounts=[1]):
         """
         Counts statistics for predictions of a classifier
 
@@ -769,7 +771,7 @@ class Worker():
                 for l in self.__make_res_b(cur_predicts, cur_y_test):
                     temp += [l]
                 mat = confusion_matrix(cur_predicts, cur_y_test)
-                if (mat.shape == (1, 1)):
+                if mat.shape == (1, 1):
                     conf_matr = [0,0,0]+list(np.array(mat).ravel())
                 else:
                     conf_matr = list(np.array(mat).ravel())[::-1]
@@ -847,7 +849,8 @@ class Worker():
                     for k in zip_longest(*temp):
                         df = df.append(pd.DataFrame([list(k)+list(vect)], 
                                                     columns=col+list(map(str,np.arange(size+1))), index=[i]))
-        print('Work time is', int((time.time() - timer)//3600), 'hours' , int(((time.time() - timer)%3600)//60), 'minutes',\
+        print('Work time is', int((time.time() - timer) // 3600), 'hours',
+              int(((time.time() - timer) % 3600) // 60), 'minutes',
               '%.2f'%((time.time() - timer)%60), 'seconds')
         return df 
     
@@ -979,4 +982,3 @@ class Worker():
         else:
             print('Word2Vec model is not set.')
             return None
-    
