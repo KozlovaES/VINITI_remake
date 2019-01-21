@@ -69,14 +69,18 @@ class Codes_helper:
             temp = list(self.ipv_change.loc[i])
             data.ipv[data.ipv == temp[0]] = temp[1]
         codes = list(set(self.ipv_codes))
-        if self.clear_math:
-            math = []
-            for i in self.ipv_codes:
-                if i.startswith('13'):
-                    math += [i]
-            codes = list(set(self.ipv_codes)-set(math))
-        for i in list(set(list(data.ipv.unique()))-set(codes)):
-            data = data.drop(data[data.ipv == i].index, axis=0)
+        # if self.clear_math:
+        #     math = []
+        #     for i in self.ipv_codes:
+        #         if i.startswith('13'):
+        #             math += [i]
+        #     codes = list(set(self.ipv_codes)-set(math))
+        clear = list(set(list(data.ipv.unique()))-set(codes))
+        if clear:
+            for i in list(set(list(data.ipv.unique()))-set(codes)):
+                idx = data[data.ipv == i].index
+                if idx.size == 0:
+                    data = data.drop(idx, axis=0)
         return data
     
     def change_subj(self, data):
