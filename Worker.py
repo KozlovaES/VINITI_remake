@@ -10,7 +10,10 @@ import time
 import datetime
 import os
 from itertools import zip_longest
+import warnings
+import re
 
+warnings.filterwarnings("ignore")
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import GridSearchCV
@@ -23,7 +26,7 @@ from sklearn.metrics import confusion_matrix
 from .Codes_helper import Codes_helper
 
 
-class Worker():       
+class Worker():
     def __init__(self, 
                  w2v_model  = None, 
                  w2v_size   = None, 
@@ -123,12 +126,16 @@ class Worker():
                 train_index, test_index = train_test_split(data.index.unique(), 
                                                            test_size=1-split_ratio)
                 self.data_train, self.data_test = data.loc[train_index], data.loc[test_index]
-            if   '_sum'  in os.path.split(train_path)[1]:
+            if   '_sum'  in os.path.split(train_path)[-1]:
                 self.conv_type = 'sum'
-            elif '_max'  in os.path.split(train_path)[1]:
+            elif '_max'  in os.path.split(train_path)[-1]:
                 self.conv_type = 'max'
-            elif '_mean' in os.path.split(train_path)[1]:
+            elif '_mean' in os.path.split(train_path)[-1]:
                 self.conv_type = 'mean'
+            if "_ru" in os.path.split(train_path)[-1]:
+                self.set_lang("ru")
+            elif "_en" in os.path.split(train_path)[-1]:
+                self.set_lang("en")
             s = re.findall('(?<=sum|ean|max)(\d+)', train_path)
             if s:
                 self.w2v_size = int(s[0])
@@ -641,7 +648,11 @@ class Worker():
         X_train, X_test, y_train, y_test = self.create_sets()
         self.__check_conv_type()
         self.__check_lang()
-        skf = StratifiedKFold(y_train, shuffle=True, n_folds=skf_folds)
+        skf = StratifiedKFold(
+            # TODO: wtf
+            # y_train,
+            shuffle=True,
+            n_splits=skf_folds)
         p = parameters.copy()
         if oneVsAll:
             for i in list(p.keys()):
@@ -649,8 +660,8 @@ class Worker():
             model = OneVsRestClassifier(model)
         gs = False
         not_gs_parameters = {}
-        for i in parameters.keys():
-            if len(parameters[i]) > 1:
+        for i in p.keys():
+            if len(p[i]) > 1:
                 gs = True
                 gs_clf = GridSearchCV(estimator=model,
                                       param_grid=p,
@@ -662,7 +673,7 @@ class Worker():
                 best_parameters = gs_clf.best_estimator_.get_params()
                 break
             else:
-                not_gs_parameters[i] = parameters[i][0]
+                not_gs_parameters[i] = p[i][0]
         if gs == False:
             best_parameters = not_gs_parameters
         clf, clf_name, stats = self.create_clf(model, 
@@ -678,7 +689,7 @@ class Worker():
         if '('in str(self.clf):
             descr += '\nType of classifier:\t' + str(self.clf).split('(')[0]
         else: 
-            descr += '\nType of classifier:\t' + str(typeof(self.clf))
+            descr += '\nType of classifier:\t' + str(type(self.clf))
         descr += '\nTested parameters:'
         for i in parameters.items():
             descr += '\n\t' + str(i)[1:-1]
